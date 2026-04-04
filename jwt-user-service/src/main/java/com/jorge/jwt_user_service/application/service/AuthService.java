@@ -1,23 +1,25 @@
 package com.jorge.jwt_user_service.application.service;
 
+import com.jorge.common.security.JwtUtils;
 import com.jorge.jwt_user_service.domain.model.User;
 import com.jorge.jwt_user_service.domain.ports.in.AuthServicePort;
-import com.jorge.jwt_user_service.domain.ports.out.JwtRepoPort;
 import com.jorge.jwt_user_service.domain.ports.out.PasswordEncoderRepoPort;
 import com.jorge.jwt_user_service.domain.ports.out.UserRepoPort;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collections;
+import java.util.List;
 
 public class AuthService implements AuthServicePort {
 
   private final UserRepoPort userRepo;
   private final PasswordEncoderRepoPort passwordEncoderRepo;
-  private final JwtRepoPort jwtRepo;
+  private final JwtUtils jwtUtils;
 
-  public AuthService(UserRepoPort userRepo,PasswordEncoderRepoPort passwordEncoderRepo,JwtRepoPort jwtRepo) {
+  public AuthService(UserRepoPort userRepo,PasswordEncoderRepoPort passwordEncoderRepo, JwtUtils jwtUtils) {
     this.userRepo = userRepo;
     this.passwordEncoderRepo = passwordEncoderRepo;
-    this.jwtRepo = jwtRepo;
+    this.jwtUtils = jwtUtils;
   }
 
   @Override
@@ -29,7 +31,9 @@ public class AuthService implements AuthServicePort {
       throw new RuntimeException("User's password is incorrect");
     }
 
-    return this.jwtRepo.generateToken(user);
+    List<SimpleGrantedAuthority> authorities = user.getRoles().stream().map(role -> new SimpleGrantedAuthority(role)).toList();
+
+    return this.jwtUtils.generateToken(user.getUsername(), authorities);
   }
 
   @Override

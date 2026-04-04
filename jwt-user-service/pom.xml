@@ -51,16 +51,10 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -95,6 +89,14 @@
 			<version>0.13.0</version>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- Common security (It's mine) -->
+		<dependency>
+			<groupId>com.jorge</groupId>
+			<artifactId>common-security</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<!-- Common security END -->
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
