@@ -1,4 +1,4 @@
-package com.jorge.jwt_user_service.application.service;
+package com.jorge.jwt_user_service.domain.service;
 
 import com.jorge.common.security.JwtUtils;
 import com.jorge.jwt_user_service.domain.model.User;

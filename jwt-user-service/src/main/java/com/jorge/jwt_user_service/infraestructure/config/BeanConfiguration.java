@@ -1,7 +1,7 @@
 package com.jorge.jwt_user_service.infraestructure.config;
 
 import com.jorge.common.security.JwtUtils;
-import com.jorge.jwt_user_service.application.service.AuthService;
+import com.jorge.jwt_user_service.domain.service.AuthService;
 import com.jorge.jwt_user_service.domain.ports.in.AuthServicePort;
 import com.jorge.jwt_user_service.domain.ports.out.PasswordEncoderRepoPort;
 import com.jorge.jwt_user_service.domain.ports.out.UserRepoPort;
