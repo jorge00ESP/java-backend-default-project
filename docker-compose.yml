@@ -1,0 +1,159 @@
+# ============================================================
+#  Full-stack Docker Compose for java-backend-default-project
+#  Start order: postgres → eureka → config → gateway + jwt + example
+# ============================================================
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB:       postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Eureka Service Registry ──────────────────────────────────
+  eureka-service:
+    build:
+      context: ./eureka-service
+      dockerfile: Dockerfile
+    container_name: eureka-service
+    ports:
+      - "8761:8761"
+    healthcheck:
+      # wget returns 0 on HTTP 200, non-zero on conn-refused / HTTP 5xx.
+      # Eureka /actuator/health returns 200 once the server is UP.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  # ── Config Server ─────────────────────────────────────────────
+  config-service:
+    build:
+      context: ./config-service
+      dockerfile: Dockerfile
+    container_name: config-service
+    ports:
+      - "8888:8888"
+    environment:
+      # Override hard-coded Windows path → mounted volume inside container
+      SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS: file:///config-files
+      # Config-service is reached via explicit URL, NOT via Eureka discovery.
+      # Disabling the Eureka client prevents health-DOWN loops caused by
+      # trying to register before Eureka is fully initialised.
+      EUREKA_CLIENT_ENABLED: "false"
+    volumes:
+      # Mount config-files read-only so the server can serve them
+      - ./config-files:/config-files:ro
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    healthcheck:
+      # /actuator/health returns 200 once the Config Server is ready.
+      # With EUREKA_CLIENT_ENABLED=false the health won't be polluted
+      # by a pending Eureka registration.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  # ── API Gateway ───────────────────────────────────────────────
+  api-gateway-service:
+    build:
+      context: ./api-gateway-service
+      dockerfile: Dockerfile
+    container_name: api-gateway-service
+    ports:
+      - "9000:9000"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-service:8888
+      # 'docker' profile → api-gateway-service-docker.yml
+      # (overrides route URIs and Eureka URL with container names)
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9000/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    restart: unless-stopped
+
+  # ── JWT / Auth Service ────────────────────────────────────────
+  jwt-user-service:
+    build:
+      context: .   # root context needed for common-security
+      dockerfile: jwt-user-service/Dockerfile
+    container_name: jwt-user-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-service:8888
+      # 'docker' profile makes config-server serve jwt-user-service-docker.yml
+      # which overrides localhost DB/Eureka URLs with container names.
+      # This is necessary because Spring Cloud Config properties have higher
+      # precedence than OS env vars by default.
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      config-service:
+        condition: service_healthy
+      postgres-db:
+        condition: service_healthy
+    healthcheck:
+      # This service has no /actuator/health. Exit code 4 = connection refused
+      # (server not up); any other code means the server IS responding.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/api/auth/login 2>/dev/null; [ $? -ne 4 ]"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    restart: unless-stopped
+
+  # ── Example Business Service ──────────────────────────────────
+  example-service:
+    build:
+      context: .   # root context needed for common-security
+      dockerfile: example-service/Dockerfile
+    container_name: example-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-service:8888
+      # Same pattern: 'docker' profile → example-service-docker.yml
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      config-service:
+        condition: service_healthy
+      postgres-db:
+        condition: service_healthy
+    healthcheck:
+      # Same as jwt-user-service: check connectivity not a specific HTTP status
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8081/api/example/category 2>/dev/null; [ $? -ne 4 ]"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    restart: unless-stopped
+
+# ── Named Volumes ─────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:

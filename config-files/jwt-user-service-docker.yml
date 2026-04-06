@@ -1,0 +1,13 @@
+# Docker-specific overrides for jwt-user-service
+# Activated when SPRING_PROFILES_ACTIVE=docker
+# Overrides localhost URLs defined in jwt-user-service.yml
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-db:5432/postgres
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-service:8761/eureka/
+

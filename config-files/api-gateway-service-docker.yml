@@ -1,0 +1,28 @@
+# Docker-specific overrides for api-gateway-service
+# Activated when SPRING_PROFILES_ACTIVE=docker
+# Overrides the localhost URIs defined in api-gateway-service.yml
+
+server:
+  port: 9000
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: jwt-user-service
+              uri: http://jwt-user-service:8080
+              predicates:
+                - Path=/api/auth/**
+
+            - id: example-service
+              uri: http://example-service:8081
+              predicates:
+                - Path=/api/example/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-service:8761/eureka/
+
