@@ -12,11 +12,6 @@ import org.springframework.context.annotation.Configuration;
 public class BeanConfiguration {
 
   @Bean
-  public JwtUtils jwtUtils() {
-    return new JwtUtils();
-  }
-
-  @Bean
   public AuthServicePort authServicePort(
           UserRepoPort userRepoPort,
           PasswordEncoderRepoPort passwordEncoderRepoPort,
