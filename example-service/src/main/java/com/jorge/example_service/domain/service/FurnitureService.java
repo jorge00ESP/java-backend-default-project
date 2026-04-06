@@ -33,7 +33,7 @@ public class FurnitureService implements FurnitureUseCase {
   @Override
   public Furniture create(Furniture furniture) {
     if(furniture.name() == null || furniture.name().isEmpty()) {
-      throw new RuntimeException("Furniture name must not be empty");
+      throw new CustomException("Furniture name must not be empty",  Response.Status.BAD_REQUEST);
     }
 
     if (furniture.price() <= 0) {
