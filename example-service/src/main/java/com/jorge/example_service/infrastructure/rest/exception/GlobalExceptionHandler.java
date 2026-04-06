@@ -2,7 +2,6 @@ package com.jorge.example_service.infrastructure.rest.exception;
 
 import com.jorge.example_service.domain.exception.CustomException;
 import com.jorge.example_service.infrastructure.rest.util.ApiResponse;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,7 +14,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(CustomException.class)
   public ResponseEntity<?> handleDomainError(CustomException ex) {
     return ApiResponse.generate(
-            HttpStatus.valueOf(ex.getStatus()),
+            HttpStatus.valueOf(ex.getStatusCode()),
             ex.getMessage(),
             null
     );
