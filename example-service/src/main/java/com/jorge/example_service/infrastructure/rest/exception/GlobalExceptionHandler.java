@@ -1,5 +1,6 @@
 package com.jorge.example_service.infrastructure.rest.exception;
 
+import com.jorge.example_service.domain.exception.CustomException;
 import com.jorge.example_service.infrastructure.rest.util.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -10,11 +11,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(EntityNotFoundException.class)
-  public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
+  // Throw handler exceptions
+  @ExceptionHandler(CustomException.class)
+  public ResponseEntity<?> handleDomainError(CustomException ex) {
     return ApiResponse.generate(
-            HttpStatus.NOT_FOUND,
-            e.getMessage(),
+            HttpStatus.valueOf(ex.getStatus()),
+            ex.getMessage(),
+            null
+    );
+  }
+
+  // Unexpected errors
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<?> handleGeneralError(Exception ex) {
+    return ApiResponse.generate(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Unexpected errors",
             null
     );
   }

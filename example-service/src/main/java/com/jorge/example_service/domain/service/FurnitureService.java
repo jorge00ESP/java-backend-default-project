@@ -1,9 +1,11 @@
 package com.jorge.example_service.domain.service;
 
+import com.jorge.example_service.domain.exception.CustomException;
 import com.jorge.example_service.domain.model.Furniture;
 import com.jorge.example_service.domain.port.in.FurnitureUseCase;
 import com.jorge.example_service.domain.port.out.CategoryRepo;
 import com.jorge.example_service.domain.port.out.FurnitureRepo;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -20,7 +22,7 @@ public class FurnitureService implements FurnitureUseCase {
   @Override
   public Furniture getById(Long id) {
     return this.furnitureRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Furniture not found"));
+            .orElseThrow(() -> new CustomException("Furniture not found", HttpStatus.NOT_FOUND.value()));
   }
 
   @Override
@@ -35,11 +37,11 @@ public class FurnitureService implements FurnitureUseCase {
     }
 
     if (furniture.price() <= 0) {
-      throw new RuntimeException("Price must be greater than 0");
+      throw new CustomException("Price must be greater than 0 or not null",  HttpStatus.BAD_REQUEST.value());
     }
 
     this.categoryRepo.findById(furniture.category().id())
-            .orElseThrow(() -> new RuntimeException("Category not found"));
+            .orElseThrow(() -> new CustomException("Category not found", HttpStatus.NOT_FOUND.value()));
 
     return this.furnitureRepo.save(furniture);
   }
@@ -47,10 +49,10 @@ public class FurnitureService implements FurnitureUseCase {
   @Override
   public Furniture updatePrice(Long id, Double price) {
     Furniture furniture = this.furnitureRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Furniture not found"));
+            .orElseThrow(() -> new CustomException("Furniture not found", HttpStatus.NOT_FOUND.value()));
 
     if (price <= 0 || price.equals(furniture.price())) {
-      throw new RuntimeException("Price must be greater than 0 and different from the current price");
+      throw new CustomException("Price must be greater than 0, different from the current price or not null",  HttpStatus.BAD_REQUEST.value());
     }
 
     Furniture updateFurniture = new Furniture(
@@ -66,7 +68,7 @@ public class FurnitureService implements FurnitureUseCase {
   @Override
   public void delete(Long id) {
     this.furnitureRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Furniture not found"));
+            .orElseThrow(() -> new CustomException("Furniture not found", HttpStatus.NOT_FOUND.value()));
 
     this.furnitureRepo.deleteById(id);
   }
