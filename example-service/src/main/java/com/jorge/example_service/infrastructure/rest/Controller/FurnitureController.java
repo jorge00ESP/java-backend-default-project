@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/furniture")
+@RequestMapping("/api/example/furniture")
 public class FurnitureController {
 
   private final FurnitureUseCase furnitureUseCase;

@@ -12,6 +12,11 @@ spring:
               predicates:
                 - Path=/api/auth/**
 
+            - id: example-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/example/**
+
 eureka:
   client:
     service-url:
