@@ -1,4 +1,4 @@
-package com.jorge.jwt_user_service.infraestructure.adapter.in.web.dto;
+package com.jorge.jwt_user_service.infraestructure.rest.dto;
 
 public record AuthRequest(
         String username,

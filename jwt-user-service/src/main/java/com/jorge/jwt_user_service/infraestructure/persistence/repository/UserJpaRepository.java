@@ -1,5 +1,6 @@
-package com.jorge.jwt_user_service.infraestructure.adapter.out.persistence;
+package com.jorge.jwt_user_service.infraestructure.persistence.repository;
 
+import com.jorge.jwt_user_service.infraestructure.persistence.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

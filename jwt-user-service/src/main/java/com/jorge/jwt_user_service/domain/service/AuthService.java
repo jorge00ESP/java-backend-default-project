@@ -1,22 +1,24 @@
 package com.jorge.jwt_user_service.domain.service;
 
 import com.jorge.common.security.JwtUtils;
+import com.jorge.jwt_user_service.domain.exception.CustomException;
 import com.jorge.jwt_user_service.domain.model.User;
-import com.jorge.jwt_user_service.domain.ports.in.AuthServicePort;
-import com.jorge.jwt_user_service.domain.ports.out.PasswordEncoderRepoPort;
-import com.jorge.jwt_user_service.domain.ports.out.UserRepoPort;
+import com.jorge.jwt_user_service.domain.ports.in.AuthUseCase;
+import com.jorge.jwt_user_service.domain.ports.out.PasswordEncoderRepo;
+import com.jorge.jwt_user_service.domain.ports.out.UserRepo;
+import jakarta.ws.rs.core.Response;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collections;
 import java.util.List;
 
-public class AuthService implements AuthServicePort {
+public class AuthService implements AuthUseCase {
 
-  private final UserRepoPort userRepo;
-  private final PasswordEncoderRepoPort passwordEncoderRepo;
+  private final UserRepo userRepo;
+  private final PasswordEncoderRepo passwordEncoderRepo;
   private final JwtUtils jwtUtils;
 
-  public AuthService(UserRepoPort userRepo,PasswordEncoderRepoPort passwordEncoderRepo, JwtUtils jwtUtils) {
+  public AuthService(UserRepo userRepo, PasswordEncoderRepo passwordEncoderRepo, JwtUtils jwtUtils) {
     this.userRepo = userRepo;
     this.passwordEncoderRepo = passwordEncoderRepo;
     this.jwtUtils = jwtUtils;
@@ -25,10 +27,10 @@ public class AuthService implements AuthServicePort {
   @Override
   public String login(String username, String password) {
     User user = this.userRepo.findByUsername(username)
-        .orElseThrow(() -> new RuntimeException("User not found"));
+        .orElseThrow(() -> new CustomException("User not found", Response.Status.NOT_FOUND));
 
     if (!this.passwordEncoderRepo.isPairedPassword(password, user.getPassword())) {
-      throw new RuntimeException("User's password is incorrect");
+      throw new CustomException("User's password is incorrect",  Response.Status.BAD_REQUEST);
     }
 
     List<SimpleGrantedAuthority> authorities = user.getRoles().stream().map(role -> new SimpleGrantedAuthority(role)).toList();
@@ -39,7 +41,7 @@ public class AuthService implements AuthServicePort {
   @Override
   public User register(User user) {
     if (this.userRepo.existsByUsername(user.getUsername())) {
-      throw new RuntimeException("This username is already in use");
+      throw new CustomException("This username is already in use",  Response.Status.BAD_REQUEST);
     }
 
     String encodedPassword = this.passwordEncoderRepo.encodePassword(user.getPassword());

@@ -1,11 +1,11 @@
-package com.jorge.jwt_user_service.infraestructure.adapter.out.security;
+package com.jorge.jwt_user_service.infraestructure.persistence.adapter;
 
-import com.jorge.jwt_user_service.domain.ports.out.PasswordEncoderRepoPort;
+import com.jorge.jwt_user_service.domain.ports.out.PasswordEncoderRepo;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BCryptAdapter implements PasswordEncoderRepoPort {
+public class PasswordEncoderAdapter implements PasswordEncoderRepo {
 
   private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
